@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hubit - Actividades</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+</head>
+
+<body>
+
+<header class="top-bar">
+    <div class="top-left">
+      <div class="logo-circle">
+        <img src="{% static 'img/LogoSinFondo.png' %}" alt="Hubit Logo">
+      </div>
+    </div>
+
+    <h1 class="top-title">Actividades</h1>
+</header>
+
+<main class="page-content-activity">
+
+  <div class="activity-selector" id="activitiesContainer">
+
+    <a href="lista-actividades.html?tipo=exterior" class="card-cover activity-cover exterior">
+      <span class="activity-title">EXTERIOR</span>
+    </a>
+
+    <a href="lista-actividades.html?tipo=interior" class="card-cover activity-cover interior">
+      <span class="activity-title">INTERIOR</span>
+    </a>
+  </div>
+
+</main>
+
+<nav class="bottom-nav blue-nav">
+  <a href="{% url 'actividades' %}" class="nav-item active">
+    <i class="bi bi-grid-fill"></i>
+  </a>
+
+  <a href="{% url 'calendario' %}" class="nav-item">
+    <i class="bi bi-calendar-event"></i>
+  </a>
+
+  <a href="{% url 'reservas' %}" class="nav-item">
+    <i class="bi bi-bookmark-check"></i>
+  </a>
+
+  <a href="{% url 'cuenta' %}" class="nav-item">
+    <i class="bi bi-person"></i>
+  </a>
+</nav>
+<script>
+    fetch("/api/actividades/", {
+      method: "GET",
+      credentials: "same-origin"
+    })
+    .then(res => {
+      if (res.status === 401) {
+        window.location.href = "/login/";
+        return;
+      }
+      return res.json();
+    })
+    .then(data => {
+
+      if (!data) return;
+
+      const container = document.getElementById("activitiesContainer");
+      container.innerHTML = "";
+
+      const hayExterior = data.some(act => act.categoria === "exterior");
+      const hayInterior = data.some(act => act.categoria === "interior");
+
+      if (hayExterior) {
+        container.innerHTML += `
+          <a href="/lista-actividades/?categoria=exterior"
+            class="card-cover activity-cover exterior">
+            <span class="activity-title">EXTERIOR</span>
+          </a>
+        `;
+      }
+
+      if (hayInterior) {
+        container.innerHTML += `
+          <a href="/lista-actividades/?categoria=interior"
+            class="card-cover activity-cover interior">
+            <span class="activity-title">INTERIOR</span>
+          </a>
+        `;
+      }
+
+      if (!hayExterior && !hayInterior) {
+        container.innerHTML = `
+          <div class="text-center mt-4">
+            <p>No hay actividades disponibles.</p>
+          </div>
+        `;
+      }
+
+    })
+    .catch(error => {
+      console.error("Error cargando actividades:", error);
+    });
+
+</script>
+<style>
+ df-messenger {
+    --df-messenger-button-titlebar-color: #2d9cdb;
+    --df-messenger-chat-background-color: #ffffff;
+    --df-messenger-font-color: #000;
+    --df-messenger-send-icon: #2d9cdb;
+
+    position: fixed;
+    top: 90px;     
+    right: 20px;
+    z-index: 9999;
+  }
+</style>
+
+
+<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+<df-messenger
+  intent="WELCOME"
+  chat-title="HubitBot"
+  agent-id="37e575e0-6a0f-4ede-881c-6141d0b2b213"
+  language-code="es"
+></df-messenger>
+
+</body>
+</html>

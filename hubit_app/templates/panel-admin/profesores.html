@@ -1,0 +1,123 @@
+{% extends "panel-admin/base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between mb-4">
+        <h2 class="fw-bold">Profesores</h2>
+
+        <button class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#modalProfesor">
+        + Nuevo profesor
+        </button>
+</div>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>Nombre</th>
+<th>Acciones</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for p in profesores %}
+<tr>
+
+<td>{{ p.nombre }}</td>
+
+<td>
+        <button class="btn btn-sm btn-danger"
+                onclick="eliminarProfesor({{ p.id }})">
+        Eliminar
+        </button>
+</td>
+
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
+
+
+<!-- MODAL -->
+
+<div class="modal fade" id="modalProfesor" tabindex="-1">
+
+<div class="modal-dialog">
+
+<div class="modal-content">
+
+<div class="modal-header">
+<h5 class="modal-title">Nuevo profesor</h5>
+<button class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+
+<input type="text"
+       id="nombreProfesor"
+       class="form-control"
+       placeholder="Nombre del profesor">
+
+</div>
+
+<div class="modal-footer">
+
+<button class="btn btn-secondary" data-bs-dismiss="modal">
+Cancelar
+</button>
+
+<button class="btn btn-primary" onclick="crearProfesor()">
+Guardar
+</button>
+
+</div>
+
+</div>
+</div>
+</div>
+
+
+<script>
+
+        function crearProfesor(){
+
+                let nombre = document.getElementById("nombreProfesor").value;
+
+                fetch("/panel-admin/crear-profesor/", {
+                        method: "POST",
+                        headers:{
+                                "Content-Type":"application/x-www-form-urlencoded",
+                                "X-CSRFToken":"{{ csrf_token }}"
+                        },
+
+                        body:"nombre="+nombre
+                })
+                .then(response => response.json())
+                .then(data => {
+
+                        if(data.success){
+                                location.reload()
+                        }
+                })
+
+        }
+
+        function eliminarProfesor(id){
+
+                fetch("/panel-admin/eliminar-profesor/"+id+"/")
+                .then(response => response.json())
+                .then(data => {
+                        if(data.success){
+                                location.reload()
+                        }
+                })
+
+        }
+
+</script>
+
+{% endblock %}

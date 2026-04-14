@@ -1,0 +1,126 @@
+{% extends "panel-admin/base.html" %}
+
+{% block content %}
+
+<h2 class="fw-bold mb-4">
+Espacios - {{ actividad.nombre }}
+</h2>
+
+<button class="btn btn-primary mb-3"
+        data-bs-toggle="modal"
+        data-bs-target="#modalEspacio">
++ Nuevo espacio
+</button>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>Nombre</th>
+<th>Acciones</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for e in espacios %}
+
+<tr>
+<td>{{ e.nombre }}</td>
+
+<td>
+<button class="btn btn-sm btn-danger"
+        onclick="eliminarEspacio({{ e.id }})">
+Eliminar
+</button>
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+</table>
+<div class="modal fade" id="modalEspacio" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Nuevo espacio</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <input type="text"
+               id="nombreEspacio"
+               class="form-control"
+               placeholder="Nombre del espacio">
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+
+        <button class="btn btn-primary" onclick="crearEspacio()">
+          Guardar
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+
+function crearEspacio(){
+
+    let nombre = document.getElementById("nombreEspacio").value
+
+    fetch("/panel-admin/crear-espacio/", {
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/x-www-form-urlencoded",
+            "X-CSRFToken":"{{ csrf_token }}"
+        },
+
+        body:"nombre="+nombre+"&actividad_id={{ actividad.id }}"
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if(data.success){
+            location.reload()
+        }
+
+    })
+
+}
+
+function eliminarEspacio(id){
+
+    fetch("/panel-admin/eliminar-espacio/"+id+"/")
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if(data.success){
+            location.reload()
+        }
+
+    })
+
+}
+
+</script>
+
+{% endblock %}
