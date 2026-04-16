@@ -1255,6 +1255,7 @@ import os
 from django.http import JsonResponse
 import json
 
+@csrf_exempt
 def chatbot(request):
     if request.method == "POST":
         try:
