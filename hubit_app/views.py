@@ -1254,27 +1254,35 @@ import requests
 import os
 from django.views.decorators.csrf import csrf_exempt
 
-@csrf_exempt
+import requests
+from django.http import JsonResponse
+import json
+import os
+
 def chatbot(request):
     if request.method == "POST":
-        data = json.loads(request.body)
-        mensaje = data.get("mensaje")
-
-        API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-small"
-        headers = {
-            "Authorization": f"Bearer {os.getenv('HF_TOKEN')}"
-        }
-
-        payload = {
-            "inputs": mensaje
-        }
-
-        response = requests.post(API_URL, headers=headers, json=payload)
-        resultado = response.json()
-
         try:
-            respuesta = resultado[0]["generated_text"]
-        except:
-            respuesta = "No he entendido bien, prueba otra pregunta."
+            data = json.loads(request.body)
+            mensaje = data.get("mensaje")
 
-        return JsonResponse({"respuesta": respuesta})
+            API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-small"
+            headers = {
+                "Authorization": f"Bearer {os.getenv('HF_TOKEN')}"
+            }
+
+            payload = {"inputs": mensaje}
+
+            response = requests.post(API_URL, headers=headers, json=payload)
+            result = response.json()
+
+            # 🔥 CONTROL DE ERRORES
+            if isinstance(result, list) and "generated_text" in result[0]:
+                respuesta = result[0]["generated_text"]
+            else:
+                respuesta = "Ahora mismo no puedo responder 🤖"
+
+            return JsonResponse({"respuesta": respuesta})
+
+        except Exception as e:
+            print("ERROR CHATBOT:", str(e))  # 👈 esto sale en logs de Render
+            return JsonResponse({"respuesta": "Error del servidor"}, status=500)
