@@ -21,7 +21,6 @@ from .models import (
 from .serializers import CentroSerializer, ActividadSerializer
 import json
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 User = get_user_model()
 from django.shortcuts import render, redirect
 from django.utils import timezone
@@ -1250,15 +1249,15 @@ def admin_eliminar_bono(request, bono_id):
 
     return JsonResponse({"success": True})
 
-import requests
-import os
-from django.views.decorators.csrf import csrf_exempt
+
 
 import requests
 from django.http import JsonResponse
 import json
 import os
 
+
+@csrf_exempt
 def chatbot(request):
     if request.method == "POST":
         try:
