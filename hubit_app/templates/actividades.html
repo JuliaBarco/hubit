@@ -110,28 +110,64 @@
     });
 
 </script>
-<style>
- df-messenger {
-    --df-messenger-button-titlebar-color: #2d9cdb;
-    --df-messenger-chat-background-color: #ffffff;
-    --df-messenger-font-color: #000;
-    --df-messenger-send-icon: #2d9cdb;
+<div id="chatbot-box">
+  <div id="chat-header">🤖 Hubit IA</div>
+  <div id="chat-messages"></div>
+  <div id="chat-input">
+    <input type="text" id="user-input" placeholder="Pregunta sobre entrenamiento..." />
+    <button onclick="enviarMensaje()">➤</button>
+  </div>
+</div>
+<script>
+function enviarMensaje() {
+  const input = document.getElementById("user-input");
+  const mensaje = input.value;
 
-    position: fixed;
-    top: 90px;     
-    right: 20px;
-    z-index: 9999;
+  if (!mensaje) return;
+
+  const chat = document.getElementById("chat-messages");
+
+  // Mensaje usuario
+  chat.innerHTML += `
+    <div style="text-align:right; margin:5px;">
+      <span style="background:#2d9cdb;color:white;padding:8px;border-radius:10px;">
+        ${mensaje}
+      </span>
+    </div>
+  `;
+
+  // Petición al backend
+  fetch("/chatbot/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ mensaje: mensaje })
+  })
+  .then(res => res.json())
+  .then(data => {
+
+    // Respuesta IA
+    chat.innerHTML += `
+      <div style="text-align:left; margin:5px;">
+        <span style="background:#eee;padding:8px;border-radius:10px;">
+          ${data.respuesta}
+        </span>
+      </div>
+    `;
+
+    chat.scrollTop = chat.scrollHeight;
+  });
+
+  input.value = "";
+}
+
+// Enter para enviar
+document.getElementById("user-input").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    enviarMensaje();
   }
-</style>
-
-
-<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
-<df-messenger
-  intent="WELCOME"
-  chat-title="HubitBot"
-  agent-id="37e575e0-6a0f-4ede-881c-6141d0b2b213"
-  language-code="es"
-></df-messenger>
-
+});
+</script>
 </body>
 </html>

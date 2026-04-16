@@ -1250,3 +1250,31 @@ def admin_eliminar_bono(request, bono_id):
 
     return JsonResponse({"success": True})
 
+import requests
+import os
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def chatbot(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        mensaje = data.get("mensaje")
+
+        API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-base"
+        headers = {
+            "Authorization": f"Bearer {os.getenv('HF_TOKEN')}"
+        }
+
+        payload = {
+            "inputs": mensaje
+        }
+
+        response = requests.post(API_URL, headers=headers, json=payload)
+        resultado = response.json()
+
+        try:
+            respuesta = resultado[0]["generated_text"]
+        except:
+            respuesta = "No he entendido bien, prueba otra pregunta."
+
+        return JsonResponse({"respuesta": respuesta})

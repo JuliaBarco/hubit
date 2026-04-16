@@ -41,6 +41,7 @@ from hubit_app.views import (
     admin_crear_bono,
     admin_eliminar_bono,
     logout_usuario,
+    chatbot,
 )
 
 urlpatterns = [
@@ -84,6 +85,7 @@ urlpatterns = [
     path("panel-admin/bonos/", admin_bonos, name="admin_bonos"),
     path("panel-admin/crear-bono/", admin_crear_bono, name="admin_crear_bono"),
     path("panel-admin/eliminar-bono/<int:bono_id>/", admin_eliminar_bono),
+    path("chatbot/", chatbot),
 
     # FRONTEND
     path('', include('hubit_app.urls')),
