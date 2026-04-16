@@ -1250,38 +1250,40 @@ def admin_eliminar_bono(request, bono_id):
     return JsonResponse({"success": True})
 
 
-
 import requests
+import os
 from django.http import JsonResponse
 import json
-import os
 
-
-@csrf_exempt
 def chatbot(request):
     if request.method == "POST":
         try:
-            data = json.loads(request.body)
-            mensaje = data.get("mensaje")
+            body = json.loads(request.body)
+            mensaje = body.get("mensaje")
 
-            API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-small"
             headers = {
                 "Authorization": f"Bearer {os.getenv('HF_TOKEN')}"
             }
 
-            payload = {"inputs": mensaje}
+            response = requests.post(
+                "https://api-inference.huggingface.co/models/google/flan-t5-base",
+                headers=headers,
+                json={"inputs": mensaje}
+            )
 
-            response = requests.post(API_URL, headers=headers, json=payload)
-            result = response.json()
+            data = response.json()
+            print("HF RESPONSE:", data)
 
             # 🔥 CONTROL DE ERRORES
-            if isinstance(result, list) and "generated_text" in result[0]:
-                respuesta = result[0]["generated_text"]
-            else:
-                respuesta = "Ahora mismo no puedo responder 🤖"
+            if isinstance(data, dict) and "error" in data:
+                return JsonResponse({"respuesta": "El modelo está cargando, prueba en unos segundos"})
+
+            respuesta = data[0].get("generated_text", "No tengo respuesta")
 
             return JsonResponse({"respuesta": respuesta})
 
         except Exception as e:
-            print("ERROR CHATBOT:", str(e))  # 👈 esto sale en logs de Render
-            return JsonResponse({"respuesta": "Error del servidor"}, status=500)
+            print("ERROR:", e)
+            return JsonResponse({"respuesta": "Error del servidor"})
+
+    return JsonResponse({"respuesta": "Método no permitido"})
