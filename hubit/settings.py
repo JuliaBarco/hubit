@@ -88,6 +88,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://hubit-7gm3.onrender.com"
+]
 
 LANGUAGE_CODE = 'es'
 
@@ -105,7 +108,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'hubit_app.Usuario'
 
-SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
+CORS_ALLOW_CREDENTIALS = True
 
 STATICFILES_DIRS = [
     BASE_DIR / "hubit_app/static",
