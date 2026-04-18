@@ -341,11 +341,18 @@ def comprar_bono(request):
                 activo=True
             ).order_by("-id").first()
 
-            if bono_actual and bono_actual.clases_restantes > 0:
-                return JsonResponse({
-                    "error": "Debes gastar tus clases antes de comprar otro bono"
-                }, status=400)
+            if bono_actual:
 
+                    reservas_en_uso = Reserva.objects.filter(
+                        bono_usuario=bono_actual,
+                        activa=True,
+                        estado="reservada"
+                    ).count()
+
+                    if bono_actual.clases_restantes > 0 or reservas_en_uso > 0:
+                        return JsonResponse({
+                            "error": "Debes terminar todas tus clases antes de comprar otro bono"
+        }, status=400)
             BonoUsuario.objects.filter(
                 usuario=request.user,
                 activo=True
