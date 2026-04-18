@@ -1260,28 +1260,46 @@ def chatbot(request):
     if request.method == "POST":
         try:
             body = json.loads(request.body)
-            mensaje = body.get("mensaje")
+            mensaje = body.get("mensaje", "")
 
             headers = {
                 "Authorization": f"Bearer {os.getenv('HF_TOKEN')}"
             }
 
             response = requests.post(
-                "https://api-inference.huggingface.co/models/google/flan-t5-base",
+                "https://api-inference.huggingface.co/models/google/flan-t5-small",
                 headers=headers,
-                json={"inputs": mensaje}
+                json={
+                    "inputs": f"""
+                Eres un asistente de una app de gimnasio llamada Hubit.
+                Responde de forma breve, clara y útil.
+
+                Usuario: {mensaje}
+                Respuesta:
+                """
+                },
+                timeout=10
             )
 
             data = response.json()
             print("HF RESPONSE:", data)
 
-            # 🔥 CONTROL DE ERRORES
+            # 🔴 ERROR (modelo cargando o fallo)
             if isinstance(data, dict) and "error" in data:
-                return JsonResponse({"respuesta": "El modelo está cargando, prueba en unos segundos"})
+                return JsonResponse({
+                    "respuesta": "Estoy despertando... prueba en unos segundos 😅"
+                })
 
-            respuesta = data[0].get("generated_text", "No tengo respuesta")
+            # 🟢 RESPUESTA OK
+            if isinstance(data, list):
+                respuesta = data[0].get("generated_text", "")
+            else:
+                respuesta = "No tengo respuesta"
 
             return JsonResponse({"respuesta": respuesta})
+
+        except requests.exceptions.Timeout:
+            return JsonResponse({"respuesta": "Estoy tardando demasiado 😅"})
 
         except Exception as e:
             print("ERROR:", e)

@@ -110,11 +110,19 @@
     });
 
 </script>
-<div id="chatbot-box">
-  <div id="chat-header">🤖 Hubit IA</div>
+<!-- BOTÓN CHAT -->
+<div id="chat-toggle" onclick="toggleChat()">
+  💬
+</div>
+
+<!-- CHAT OCULTO -->
+<div id="chat-box">
+  <div id="chat-header">Hubit IA</div>
+
   <div id="chat-messages"></div>
+
   <div id="chat-input">
-    <input type="text" id="user-input" placeholder="Pregunta sobre entrenamiento..." />
+    <input type="text" id="user-input" placeholder="Pregunta..." />
     <button onclick="enviarMensaje()">➤</button>
   </div>
 </div>
@@ -163,11 +171,23 @@ function enviarMensaje() {
 }
 
 // Enter para enviar
-document.getElementById("user-input").addEventListener("keypress", function(e) {
-  if (e.key === "Enter") {
-    enviarMensaje();
-  }
+document.addEventListener("DOMContentLoaded", function () {
+
+  document.getElementById("user-input").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+      enviarMensaje();
+    }
+  });
+
 });
+function toggleChat() {
+  const chat = document.getElementById("chat-box");
+  if (chat.style.display === "flex") {
+    chat.style.display = "none";
+  } else {
+    chat.style.display = "flex";
+  }
+}
 </script>
 </body>
 </html>
