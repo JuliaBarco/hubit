@@ -1267,19 +1267,28 @@ def chatbot(request):
             }
 
             response = requests.post(
-                "https://api-inference.huggingface.co/models/google/flan-t5-small",
-                headers=headers,
-                json={
-                    "inputs": f"""
+                    "https://api-inference.huggingface.co/models/google/flan-t5-small",
+                    headers={
+                        "Authorization": f"Bearer {os.getenv('HF_TOKEN')}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "inputs": f"""
                 Eres un asistente de una app de gimnasio llamada Hubit.
-                Responde de forma breve, clara y útil.
+                Responde de forma breve.
 
                 Usuario: {mensaje}
                 Respuesta:
                 """
-                },
-                timeout=10
-            )
+                    },
+                    timeout=10
+                )
+            try:
+                data = response.json()
+            except:
+                print("RESPUESTA RARA:", response.text)
+                return JsonResponse({"respuesta": "La IA no responde ahora mismo"})
+            
             print("TOKEN:", os.getenv('HF_TOKEN'))
             print("STATUS:", response.status_code)
             print("TEXT:", response.text)
