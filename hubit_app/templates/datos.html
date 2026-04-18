@@ -138,12 +138,12 @@
       document.getElementById("genero").value = data.genero;
     })
     .catch(error => {
-      window.location.href = "inicioSesion.html";
+      window.location.href = "/login/";
     });
     document.getElementById("datosForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
-    fetch("http://127.0.0.1:8000/api/perfil/", {
+    fetch("/api/perfil/", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"

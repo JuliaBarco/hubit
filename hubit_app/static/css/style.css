@@ -1148,6 +1148,7 @@ body {
   flex-direction: column;
   box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
   overflow: hidden;
+  z-index: 9999;
 }
 
 #chat-header {
