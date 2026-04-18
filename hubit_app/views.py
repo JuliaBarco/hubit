@@ -1250,10 +1250,13 @@ def admin_eliminar_bono(request, bono_id):
     return JsonResponse({"success": True})
 
 
-import requests
 import os
-from django.http import JsonResponse
 import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @csrf_exempt
 def chatbot(request):
@@ -1262,57 +1265,23 @@ def chatbot(request):
             body = json.loads(request.body)
             mensaje = body.get("mensaje", "")
 
-            headers = {
-                "Authorization": f"Bearer {os.getenv('HF_TOKEN')}"
-            }
-
-            response = requests.post(
-                    "https://api-inference.huggingface.co/models/google/flan-t5-small",
-                    headers={
-                        "Authorization": f"Bearer {os.getenv('HF_TOKEN')}",
-                        "Content-Type": "application/json"
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Eres un asistente de una app de gimnasio llamada Hubit. Responde de forma breve."
                     },
-                    json={
-                        "inputs": f"""
-                Eres un asistente de una app de gimnasio llamada Hubit.
-                Responde de forma breve.
+                    {
+                        "role": "user",
+                        "content": mensaje
+                    }
+                ]
+            )
 
-                Usuario: {mensaje}
-                Respuesta:
-                """
-                    },
-                    timeout=10
-                )
-            try:
-                data = response.json()
-            except:
-                print("RESPUESTA RARA:", response.text)
-                return JsonResponse({"respuesta": "La IA no responde ahora mismo"})
-            
-            print("TOKEN:", os.getenv('HF_TOKEN'))
-            print("STATUS:", response.status_code)
-            print("TEXT:", response.text)
-
-
-            data = response.json()
-            print("HF RESPONSE:", data)
-
-            # 🔴 ERROR (modelo cargando o fallo)
-            if isinstance(data, dict) and "error" in data:
-                return JsonResponse({
-                    "respuesta": "Estoy despertando... prueba en unos segundos 😅"
-                })
-
-            # 🟢 RESPUESTA OK
-            if isinstance(data, list):
-                respuesta = data[0].get("generated_text", "")
-            else:
-                respuesta = "No tengo respuesta"
+            respuesta = response.choices[0].message.content
 
             return JsonResponse({"respuesta": respuesta})
-
-        except requests.exceptions.Timeout:
-            return JsonResponse({"respuesta": "Estoy tardando demasiado 😅"})
 
         except Exception as e:
             print("ERROR:", e)
