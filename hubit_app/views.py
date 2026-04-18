@@ -1257,6 +1257,7 @@ import json
 
 @csrf_exempt
 def chatbot(request):
+    return JsonResponse({"respuesta": "Funciona"})
     if request.method == "POST":
         try:
             body = json.loads(request.body)
