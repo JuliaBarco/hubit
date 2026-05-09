@@ -1,0 +1,175 @@
+{% extends "panel-admin/base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Gestión de Actividades</h2>
+
+    <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalActividad">
+        + Nueva actividad
+    </button>
+</div>
+
+{% if actividades %}
+  <div class="row">
+  {% for act in actividades %}
+
+  <div class="col-lg-4 col-md-6 mb-4">
+    <div class="card shadow-sm">
+
+      {% if act.imagen %}
+      <img src="{{ act.imagen.url }}" class="card-img-top">
+      {% endif %}
+
+      <div class="card-body">
+
+        <h5 class="card-title">{{ act.nombre }}</h5>
+
+        <span class="badge"
+          style="background:{{ act.color }}">
+          {{ act.tipo }}
+        </span>
+
+        {% if act.tipo == "libre" %}
+          <p class="mt-2 fw-bold">{{ act.precio }} €</p>
+        {% else %}
+          <p class="mt-2 text-muted">Actividad con bono</p>
+        {% endif %}
+
+        <div class="mt-3">
+
+          {% if act.tipo == "bono" %}
+
+            <a href="{% url 'admin_horarios_actividad' act.id %}"
+              class="btn btn-sm btn-outline-primary">
+              Horarios
+            </a>
+
+          {% endif %}
+
+
+          {% if act.tipo == "libre" %}
+
+            <a href="{% url 'admin_espacios_actividad' act.id %}"
+              class="btn btn-sm btn-outline-secondary">
+              Espacios
+            </a>
+
+          {% endif %}
+
+            <button class="btn btn-sm btn-outline-danger"
+                    onclick="eliminarActividad({{ act.id }})">
+              Eliminar
+            </button>
+
+          </div>
+
+    </div>
+  </div>
+</div>
+  {% endfor %}
+  </div>
+{% endif %}
+
+<div class="modal fade" id="modalActividad" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content rounded-4">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Nueva Actividad</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="formActividad" enctype="multipart/form-data">
+          {% csrf_token %}
+          
+          <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" name="nombre" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" name="tipo" id="tipoActividad">
+              <option value="libre">Libre</option>
+              <option value="bono">Con bono</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Categoría</label>
+            <select class="form-select" name="categoria">
+              <option value="interior">Interior</option>
+              <option value="exterior">Exterior</option>
+            </select>
+          </div>
+
+          <div class="mb-3" id="precioContainer">
+            <label class="form-label">Precio</label>
+            <input type="number" step="0.01" class="form-control" name="precio">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Color</label>
+            <input type="color" class="form-control form-control-color" name="color" value="#1565c0">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Imagen</label>
+            <input type="file" class="form-control" name="imagen">
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 rounded-pill">
+            Guardar
+          </button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById("tipoActividad").addEventListener("change", function() {
+    document.getElementById("precioContainer").style.display =
+        this.value === "libre" ? "block" : "none";
+});
+
+document.getElementById("formActividad").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    let formData = new FormData(this);
+
+    fetch("{% url 'admin_crear_actividad' %}", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.error){
+            alert(data.error);
+            return;
+        }
+        location.reload();
+    });
+});
+</script>
+<script>
+
+    function eliminarActividad(id){
+
+        if(!confirm("¿Eliminar esta actividad?")){
+            return;
+        }
+
+        fetch(`/panel-admin/eliminar-actividad/${id}/`)
+        .then(res => res.json())
+        .then(data => {
+            location.reload()
+        })
+
+    }
+
+</script>
+
+{% endblock %}

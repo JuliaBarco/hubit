@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hubit - Lista Actividades</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+<header class="top-bar">
+  <div class="top-left">
+    <div class="logo-circle">
+      <img src="{% static 'img/LogoSinFondo.png' %}" alt="Hubit Logo">
+    </div>
+  </div>
+  <h1 class="top-title" id="pageTitle">Actividades</h1>
+</header>
+
+<div class="page-content-activities-page">
+
+  <div class="activity-selector" id="activitiesContainer"></div>
+
+</div>
+<nav class="bottom-nav blue-nav">
+  <a href="{% url 'actividades' %}" class="nav-item active">
+    <i class="bi bi-grid-fill"></i>
+  </a>
+
+  <a href="{% url 'calendario' %}" class="nav-item">
+    <i class="bi bi-calendar-event"></i>
+  </a>
+
+  <a href="{% url 'reservas' %}" class="nav-item">
+    <i class="bi bi-bookmark-check"></i>
+  </a>
+
+  <a href="{% url 'cuenta' %}" class="nav-item">
+    <i class="bi bi-person"></i>
+  </a>
+</nav>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+  const params = new URLSearchParams(window.location.search);
+  const categoria = params.get("categoria");
+
+  const title = document.getElementById("pageTitle");
+  title.textContent = categoria ? categoria.toUpperCase() : "ACTIVIDADES";
+  fetch("/api/actividades/", {
+    method: "GET",
+    credentials: "same-origin"
+  })
+  .then(res => {
+    if (res.status === 401) {
+      window.location.href = "/login/";
+      return;
+    }
+    return res.json();
+  })
+  .then(data => {
+
+    if (!data) return;
+
+    const container = document.getElementById("activitiesContainer");
+    container.innerHTML = "";
+
+    const filtradas = categoria 
+      ? data.filter(act => act.categoria === categoria)
+      : data;
+
+    if (filtradas.length === 0) {
+      container.innerHTML = `
+        <div class="col-12 text-center">
+          <p>No hay actividades disponibles.</p>
+        </div>
+      `;
+      return;
+    }
+
+    filtradas.forEach(act => {
+
+      const col = document.createElement("div");
+      col.className = "col-12";
+
+      const imagenUrl = act.imagen 
+        ? act.imagen
+        : "/static/img/default.jpg";
+
+      const url = `/actividad/?id=${act.id}`;
+
+      col.innerHTML = `
+        <a href="${url}"
+          class="card-cover activity-cover"
+          style="background-image: url('${imagenUrl}')">
+
+          <span class="activity-title">
+            ${act.nombre}
+          </span>
+
+        </a>
+      `;
+
+      container.appendChild(col);
+    });
+
+  })
+  .catch(error => {
+    console.error("Error cargando actividades:", error);
+  });
+
+});
+</script>
+
+</body>
+</html>
