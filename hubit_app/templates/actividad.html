@@ -206,9 +206,40 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then(result => {
 
                     if (result.error) {
+
                         mostrarMensaje(result.error, "error");
+
+                        if (result.mostrar_horario) {
+
+                            let html = "";
+
+                            result.horarios.forEach(h => {
+
+                                html += `
+                                    <div class="mb-2">
+                                        <strong>${h.dia}</strong><br>
+                                        ${h.inicio} - ${h.fin}
+                                    </div>
+                                `;
+
+                            });
+
+                            document.getElementById("horariosCentro").innerHTML = html;
+
+                            const modal = new bootstrap.Modal(
+                                document.getElementById("horarioModal")
+                            );
+
+                            modal.show();
+                        }
+
                     } else {
-                        mostrarMensaje("Reserva realizada correctamente", "success");
+
+                        mostrarMensaje(
+                            "Reserva realizada correctamente",
+                            "success"
+                        );
+
                         generarHoras();
                     }
 
@@ -363,6 +394,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
+<div class="modal fade" id="horarioModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
 
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Horario del centro
+        </h5>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal">
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div id="horariosCentro"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

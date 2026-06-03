@@ -158,6 +158,7 @@ from django.shortcuts import render
 def registro_view(request):
     return render(request, "registro.html")
 
+
 def login_view(request):
     return render(request, "inicioSesion.html")
 
@@ -727,8 +728,25 @@ def reservar_espacio(request):
         )
 
         if not bloques.exists():
-            return JsonResponse({"error": "El centro está cerrado ese día"}, status=400)
 
+            horarios = HorarioCentro.objects.filter(
+                centro=centro
+            ).order_by("dia_semana")
+
+            datos_horarios = []
+
+            for h in horarios:
+                datos_horarios.append({
+                    "dia": h.get_dia_semana_display(),
+                    "inicio": h.hora_inicio.strftime("%H:%M"),
+                    "fin": h.hora_fin.strftime("%H:%M")
+                })
+
+            return JsonResponse({
+                "error": "El centro está cerrado ese día",
+                "mostrar_horario": True,
+                "horarios": datos_horarios
+            }, status=400)
         valido = False
 
         for bloque in bloques:
@@ -740,7 +758,25 @@ def reservar_espacio(request):
                 break
 
         if not valido:
-            return JsonResponse({"error": "Fuera del horario permitido"}, status=400)
+
+            horarios = HorarioCentro.objects.filter(
+                centro=centro
+            ).order_by("dia_semana")
+
+            datos_horarios = []
+
+            for h in horarios:
+                datos_horarios.append({
+                    "dia": h.get_dia_semana_display(),
+                    "inicio": h.hora_inicio.strftime("%H:%M"),
+                    "fin": h.hora_fin.strftime("%H:%M")
+                })
+
+            return JsonResponse({
+                "error": "Fuera del horario permitido",
+                "mostrar_horario": True,
+                "horarios": datos_horarios
+            }, status=400)
 
         conflicto = ReservaEspacio.objects.filter(
             espacio_id=espacio_id,
