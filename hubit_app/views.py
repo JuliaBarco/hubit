@@ -493,7 +493,7 @@ def reservar_clase(request):
             if not bono_usuario or bono_usuario.clases_restantes <= 0:
                 return JsonResponse({
                     "error": "No tienes bonos disponibles. Dirígete al Área Personal para comprar un bono.",
-                    "redirect_url": "/area-personal/"
+                    "redirect_url": "/compras/"
                 }, status=400)
 
             if Reserva.objects.filter(
