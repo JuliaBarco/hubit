@@ -333,6 +333,12 @@ def comprar_bono(request):
     if request.method == "POST":
         data = json.loads(request.body)
         bono_id = data.get("bono_id")
+        pago_simulado = data.get("pago_simulado")
+
+        if not pago_simulado:
+            return JsonResponse({
+                "error": "Debes completar el pago simulado antes de comprar el bono"
+            }, status=400)
 
         try:
             bono = Bono.objects.get(id=bono_id)
@@ -485,7 +491,10 @@ def reservar_clase(request):
             ).order_by("-id").first()
 
             if not bono_usuario or bono_usuario.clases_restantes <= 0:
-                return JsonResponse({"error": "Sin clases disponibles"}, status=400)
+                return JsonResponse({
+                    "error": "No tienes bonos disponibles. Dirígete al Área Personal para comprar un bono.",
+                    "redirect_url": "/area-personal/"
+                }, status=400)
 
             if Reserva.objects.filter(
                 usuario=request.user,

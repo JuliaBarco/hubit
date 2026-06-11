@@ -39,22 +39,18 @@
 <nav class="bottom-nav blue-nav">
   <a href="{% url 'actividades' %}" class="nav-item">
     <i class="bi bi-grid-fill"></i>
-    <span>Actividades</span>
   </a>
 
   <a href="{% url 'calendario' %}" class="nav-item">
     <i class="bi bi-calendar-event"></i>
-    <span>Calendario</span>
   </a>
 
   <a href="{% url 'reservas' %}" class="nav-item">
     <i class="bi bi-bookmark-check"></i>
-    <span>Reserva</span>
   </a>
 
   <a href="{% url 'cuenta' %}" class="nav-item active">
     <i class="bi bi-person"></i>
-    <span>A. Personal</span>
   </a>
 </nav>
 <div id="appModal" class="custom-modal">
@@ -66,7 +62,46 @@
     </div>
   </div>
 </div>
+<div id="modalPago" class="custom-modal">
+  <div class="modal-content-box pago-box">
+
+    <h5 class="mb-2">Pago simulado</h5>
+    <p id="textoBonoPago" class="mb-3"></p>
+
+    <div class="mb-3 text-start">
+      <label class="form-label">Titular de la tarjeta</label>
+      <input type="text" id="titularTarjeta" class="form-control" placeholder="Nombre y apellidos">
+    </div>
+
+    <div class="mb-3 text-start">
+      <label class="form-label">Número de tarjeta</label>
+      <input type="text" id="numeroTarjeta" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19">
+    </div>
+
+    <div class="row">
+      <div class="col-6 mb-3 text-start">
+        <label class="form-label">Caducidad</label>
+        <input type="text" id="caducidadTarjeta" class="form-control" placeholder="MM/AA" maxlength="5">
+      </div>
+
+      <div class="col-6 mb-3 text-start">
+        <label class="form-label">CVV</label>
+        <input type="password" id="cvvTarjeta" class="form-control" placeholder="123" maxlength="3">
+      </div>
+    </div>
+
+    <p id="errorPago" class="text-danger small mb-3"></p>
+
+    <div class="modal-buttons">
+      <button type="button" class="btn-cancel" onclick="cerrarPopupPago()">Cancelar</button>
+      <button type="button" class="btn-confirm" onclick="confirmarPagoSimulado()">Pagar</button>
+    </div>
+
+  </div>
+</div>
 <script>
+let bonoSeleccionado = null;
+
 document.addEventListener("DOMContentLoaded", function() {
 
   fetch("/api/bonos/", {
@@ -94,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function() {
           </div>
           <div class="bono-precio">
             <strong>${bono.precio} €</strong>
-            <button class="btn btn-primary btn-sm" onclick="comprar(${bono.id})">
+            <button class="btn btn-primary btn-sm" onclick="abrirPopupPago(${bono.id}, '${bono.nombre}', '${bono.precio}')">
               Comprar
             </button>
           </div>
@@ -107,26 +142,102 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 
+function abrirPopupPago(bonoId, nombreBono, precioBono) {
+  bonoSeleccionado = bonoId;
+
+  document.getElementById("textoBonoPago").innerText =
+    "Vas a comprar el bono " + nombreBono + " por " + precioBono + " €";
+
+  document.getElementById("titularTarjeta").value = "";
+  document.getElementById("numeroTarjeta").value = "";
+  document.getElementById("caducidadTarjeta").value = "";
+  document.getElementById("cvvTarjeta").value = "";
+  document.getElementById("errorPago").innerText = "";
+
+  document.getElementById("modalPago").classList.add("show");
+}
+
+function cerrarPopupPago() {
+  document.getElementById("modalPago").classList.remove("show");
+}
+
+document.addEventListener("input", function(e) {
+  if (e.target.id === "numeroTarjeta") {
+    let valor = e.target.value.replace(/\D/g, "").substring(0, 16);
+    valor = valor.replace(/(.{4})/g, "$1 ").trim();
+    e.target.value = valor;
+  }
+
+  if (e.target.id === "caducidadTarjeta") {
+    let valor = e.target.value.replace(/\D/g, "").substring(0, 4);
+
+    if (valor.length >= 3) {
+      valor = valor.substring(0, 2) + "/" + valor.substring(2);
+    }
+
+    e.target.value = valor;
+  }
+
+  if (e.target.id === "cvvTarjeta") {
+    e.target.value = e.target.value.replace(/\D/g, "").substring(0, 3);
+  }
+});
+
+function confirmarPagoSimulado() {
+  const titular = document.getElementById("titularTarjeta").value.trim();
+  const numero = document.getElementById("numeroTarjeta").value.replace(/\s/g, "");
+  const caducidad = document.getElementById("caducidadTarjeta").value.trim();
+  const cvv = document.getElementById("cvvTarjeta").value.trim();
+  const errorPago = document.getElementById("errorPago");
+
+  if (!titular || !numero || !caducidad || !cvv) {
+    errorPago.innerText = "Completa todos los datos de pago.";
+    return;
+  }
+
+  if (numero.length !== 16) {
+    errorPago.innerText = "El número de tarjeta debe tener 16 dígitos.";
+    return;
+  }
+
+  if (!/^\d{2}\/\d{2}$/.test(caducidad)) {
+    errorPago.innerText = "Introduce la caducidad con formato MM/AA.";
+    return;
+  }
+
+  if (cvv.length !== 3) {
+    errorPago.innerText = "El CVV debe tener 3 dígitos.";
+    return;
+  }
+
+  comprar(bonoSeleccionado);
+}
+
 function comprar(bonoId) {
 
   fetch("/api/comprar-bono/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ bono_id: bonoId })
+    body: JSON.stringify({
+      bono_id: bonoId,
+      pago_simulado: true
+    })
   })
   .then(res => res.json())
   .then(data => {
 
     if (data.mensaje) {
-      mostrarModal("Bono comprado correctamente", true);
+      cerrarPopupPago();
+      mostrarModal("Pago realizado correctamente. Bono comprado.", true);
     } else {
-      mostrarModal(data.error || "Error al comprar", false);
+      document.getElementById("errorPago").innerText = data.error || "Error al comprar";
     }
 
   });
 
 }
+
 function mostrarModal(mensaje, redirigir=false) {
 
   const modal = document.getElementById("appModal");
