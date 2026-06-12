@@ -360,27 +360,41 @@ document.addEventListener("DOMContentLoaded", function () {
                     })
                     .then(res => res.json())
                         .then(result => {
-                            if (result.error) {
-                                mostrarMensaje(result.error, "error");
-                            } else {
-                                mostrarMensaje("Reserva realizada", "success");
 
-                                const fechaActiva = document.querySelector(".day-btn.active").dataset.fecha;
+                        if (result.redirect_url) {
 
-                               setTimeout(() => {
+                            mostrarMensaje(result.error, "error");
 
-                                    fetch(`/api/actividad/${id}/`)
-                                        .then(res => res.json())
-                                        .then(newData => {
+                            setTimeout(() => {
+                                window.location.href = result.redirect_url;
+                            }, 2000);
 
-                                            data.clases = newData.clases;   
+                            return;
+                        }
 
-                                            mostrarClases(fechaActiva);   
-                                        });
+                        if (result.error) {
+                            mostrarMensaje(result.error, "error");
+                        } else {
 
-                                }, 500);
-                            }
-});
+                            mostrarMensaje("Reserva realizada", "success");
+
+                            const fechaActiva = document.querySelector(".day-btn.active").dataset.fecha;
+
+                            setTimeout(() => {
+
+                                fetch(`/api/actividad/${id}/`)
+                                    .then(res => res.json())
+                                    .then(newData => {
+
+                                        data.clases = newData.clases;
+
+                                        mostrarClases(fechaActiva);
+                                    });
+
+                            }, 500);
+                        }
+
+                    })
                 });
             });
         }
